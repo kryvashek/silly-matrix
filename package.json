@@ -1,0 +1,26 @@
+{
+  "name": "silly-matrix",
+  "version": "0.9.0",
+  "description": "Simple module providing (some) matrix calculations.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kryvashek/silly-matrix.git"
+  },
+  "keywords": [
+    "matrix",
+    "linear",
+    "produce",
+    "solve",
+    "equation"
+  ],
+  "author": "kryvashek",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/kryvashek/silly-matrix/issues"
+  },
+  "homepage": "https://github.com/kryvashek/silly-matrix#readme"
+}
