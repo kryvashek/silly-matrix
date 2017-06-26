@@ -1,7 +1,7 @@
 // boas-matrix.js
 // ==============
 module.exports = {
-    // looks in a specified array for the entry with the most absolute value
+    // looks in a specified array for the entry with the most absolute value and returns its index
     arrayMaxAbs: function(array, start, stop) {
         if (undefined === start)
             start = 0;
@@ -76,7 +76,7 @@ module.exports = {
         return B[N - 1][N - 1];
     },
 
-    // returns new array the same as given axcept of contatinig specified index
+    // returns new array the same as given except of contatinig specified index
     excludeIndex: function(array, i) {
         return array.filter(function(entry, index, arr) {
             return index !== i;
@@ -136,7 +136,7 @@ module.exports = {
         return this.transpose(this.makeOneRowMatrix(array));
     },
 
-    // returns an inverse matrix for the given one (should be square)
+    // returns an inverse matrix for the given one (should be square) or false if there is no
     inverse: function(A) {
         var det = this.determinant(A);
 
