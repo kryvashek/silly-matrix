@@ -30,24 +30,27 @@ module.exports = {
         return true;
     },
 
+    // makes a copy of given array and returns it
+    arrayCopy: function(array) {
+        return array.map( item => item );
+    },
+
+    // makes a copy pf given matrix and returns it
+    matrixCopy: function(A) {
+        return A.map( this.arrayCopy );
+    },
+
     // calculation of the determinant for the given square matrix
     // Bareiss algorithm, complexity is ~O(n^3)
     determinant: function(A) {
         var N = A[0].length,
-            B = [],
+            B = this.matrixCopy(A),
             denom = 1,
             exchanges = 0,
             maxIdx,
             prop,
             sub,
             i, j, k;
-
-        for (i = 0; i < N; ++i) {
-            B[i] = [];
-
-            for (j = 0; j < N; ++j)
-                B[i][j] = A[i][j];
-        }
 
         for (i = 0; i < N - 1; ++i) {
             maxIdx = this.arrayMaxAbs(B[i], i);
@@ -77,20 +80,13 @@ module.exports = {
     },
 
     // returns new array the same as given axcept of contatinig specified index
-    excludeIndex: function(array, i) {
-        return array.filter(function(entry, index, arr) {
-            return index !== i;
-        });
+    arrayExclude: function(array, i) {
+        return array.filter((entry, index) => (index !== i));
     },
 
     // excludes specified row and column from the matrix
-    excludeRowCol: function(matrix, i, j) {
-        var temp = this.excludeIndex(matrix, i);
-
-        for (var k in temp)
-            temp[k] = this.excludeIndex(temp[k], j);
-
-        return temp;
+    matrixExclude: function(matrix, i, j) {
+        return this.arrayExclude(matrix, i).map( row => this.arrayExclude(row, j) );
     },
 
     // returns an adjugate matrix for the given one (should be square)
@@ -103,7 +99,7 @@ module.exports = {
             C[i] = [];
 
             for (j = 0; j < N; j++)
-                C[i][j] = (((i + j) % 2) ? -1 : 1) * this.determinant(this.excludeRowCol(A, j, i));
+                C[i][j] = (((i + j) % 2) ? -1 : 1) * this.determinant(this.matrixExclude(A, j, i));
         }
 
         return C;
@@ -156,6 +152,7 @@ module.exports = {
 
     // returns a production of the given matrices or undefined if it can not be calculated
     produce: function(A, B) {
+        console.log( "Producing ", A, " and ", B );
         var M = A.length,
             N = A[0].length,
             O = B.length,
@@ -182,10 +179,16 @@ module.exports = {
 
     // returns pseudoinverse matrix for the given one
     pseudoinverse: function(A) {
-        if (A.length < A[0].length)
-            return this.produce(this.transpose(A), this.inverse(this.produce(A, this.transpose(A))));
+        var At = this.transpose(A);
+
+        if (A.length < At.length)
+            return this.produce(At, this.inverse(this.produce(A, At)));
         else
-            return this.produce(this.inverse(this.produce(this.transpose(A), A)), this.transpose(A));
+            return this.produce(this.inverse(this.produce(At, A)), At);
+    },
+
+    newPseudoInverse: function(A) {
+
     },
 
     // solves linear equation in OLS manner
@@ -193,3 +196,4 @@ module.exports = {
         return this.produce(this.pseudoinverse(A), this.makeOneColMatrix(b));
     }
 };
+
