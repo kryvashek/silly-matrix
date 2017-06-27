@@ -35,16 +35,44 @@ module.exports = {
         return array.map( item => item );
     },
 
+    // returns new array the same as given except of contatinig specified index
+    arrayExclude: function(array, i) {
+        return array.filter((entry, index) => (index !== i));
+    },
+
+    // returns scalar product of two given arrays
+    arrayProduce: function(arrayOne, arrayTwo) {
+        if(arrayOne.length !== arrayTwo.length)
+            return false;
+
+        return arrayOne.reduce((sum, current, i) => sum + current * arrayTwo[i], 0);
+    },
+
     // makes a copy pf given matrix and returns it
-    matrixCopy: function(A) {
-        return A.map( this.arrayCopy );
+    matrixCopy: function(matrix) {
+        return matrix.map( this.arrayCopy );
+    },
+
+    // returns new matrix the same as given except of contatinig row specified by its index
+    matrixExcludeRow: function(matrix, i) {
+        return this.arrayExclude(matrix,i);
+    },
+
+    // returns new matrix the same as given except of contatinig row specified by its index
+    matrixExcludeCol: function(matrix, j) {
+        return matrix.map(row => this.arrayExclude(row, j));
+    },
+
+    // excludes specified row and column from the matrix
+    matrixExcludeRowCol: function(matrix, i, j) {
+        return this.matrixExcludeCol(this.matrixExcludeRow(matrix, i), j);
     },
 
     // calculation of the determinant for the given square matrix
     // Bareiss algorithm, complexity is ~O(n^3)
-    determinant: function(A) {
-        var N = A[0].length,
-            B = this.matrixCopy(A),
+    determinant: function(matrix) {
+        var N = matrix[0].length,
+            B = this.matrixCopy(matrix),
             denom = 1,
             exchanges = 0,
             maxIdx,
@@ -79,102 +107,54 @@ module.exports = {
         return B[N - 1][N - 1];
     },
 
-    // returns new array the same as given axcept of contatinig specified index
-    arrayExclude: function(array, i) {
-        return array.filter((entry, index) => (index !== i));
+    // calculates and returns extra i,j-minor for given matrix
+    minor: function(matrix, i, j) {
+        return this.determinant(this.matrixExcludeRowCol(matrix, i, j));
     },
 
-    // excludes specified row and column from the matrix
-    matrixExclude: function(matrix, i, j) {
-        return this.arrayExclude(matrix, i).map( row => this.arrayExclude(row, j) );
+    // calculates and returns algebraic addition for i,j-element of given matrix
+    algebraicAddition: function(matrix, i, j) {
+        return (((i + j) % 2) ? -1 : 1) * this.minor(matrix, i, j)
     },
 
     // returns an adjugate matrix for the given one (should be square)
-    adjugate: function(A) {
-        var N = A[0].length,
-            C = [],
-            i, j, k;
-
-        for (i = 0; i < N; i++) {
-            C[i] = [];
-
-            for (j = 0; j < N; j++)
-                C[i][j] = (((i + j) % 2) ? -1 : 1) * this.determinant(this.matrixExclude(A, j, i));
-        }
-
-        return C;
+    adjugate: function(matrix) {
+        return matrix.map((row, i) => row.map((item, j) => this.algebraicAddition(matrix, j, i))); // j and i swapped because result should be transposed
     },
 
     // returns a transposed matrix based on the given one
-    transpose: function(A) {
-        var M = A.length,
-            N = A[0].length,
-            B = [],
-            i, j;
-
-        for (i = 0; i < N; i++) {
-            B[i] = [];
-
-            for (j = 0; j < M; j++)
-                B[i][j] = A[j][i];
-        }
-
-        return B;
+    transpose: function(matrix) {
+        return matrix.map((row, i) => row.map((item, j) => matrix[j][i])); // todo correct transposing !!!!
     },
 
     // returns matrix with one row made from usual array
-    makeOneRowMatrix: function(array) {
+    matrixFromArrayRow: function(array) {
         return [array];
     },
 
     // returns matrix with one column made from usual array
-    makeOneColMatrix: function(array) {
-        return this.transpose(this.makeOneRowMatrix(array));
+    matrixFromArrayCol: function(array) {
+        return this.transpose(this.matrixFromArrayRow(array));
     },
 
-    // returns an inverse matrix for the given one (should be square)
-    inverse: function(A) {
-        var det = this.determinant(A);
+    // returns an inverse matrix for the given one (should be square) or false if determinant equals zero
+    inverse: function(matrix) {
+        var det = this.determinant(matrix);
 
         if (0 === det)
             return false;
 
-        var N = A[0].length,
-            B = this.adjugate(A),
-            i, j;
-
-        for (i = 0; i < N; i++)
-            for (j = 0; j < N; j++)
-                B[i][j] /= det;
-
-        return B;
+        return this.adjugate(matrix).map(row => row.map(item => item / det));
     },
 
-    // returns a production of the given matrices or undefined if it can not be calculated
-    produce: function(A, B) {
-        console.log( "Producing ", A, " and ", B );
-        var M = A.length,
-            N = A[0].length,
-            O = B.length,
-            P = B[0].length,
-            i, j, k,
-            C = [];
+    // returns a production of the given matrices or false if it can not be calculated
+    produce: function(matrixOne, matrixTwo) {
+        var transposedTwo = this.transpose(matrixTwo);
 
-        if (N != O)
-            return undefined;
+        if(matrixOne.length !== transposedTwo.length)
+            return false;
 
-        for (i = 0; i < M; i++) {
-            C[i] = [];
-
-            for (j = 0; j < P; j++) {
-                C[i][j] = 0;
-
-                for (k = 0; k < N; k++)
-                    C[i][j] += A[i][k] * B[k][j];
-            }
-        }
-
-        return C;
+        return matrixOne.map((row, i) => row.map((item, j) => this.arrayProduce(matrixOne[i], transposedTwo[j])));
     },
 
     // returns pseudoinverse matrix for the given one
@@ -187,13 +167,9 @@ module.exports = {
             return this.produce(this.inverse(this.produce(At, A)), At);
     },
 
-    newPseudoInverse: function(A) {
-
-    },
-
     // solves linear equation in OLS manner
     solveEquation: function(A, b) {
-        return this.produce(this.pseudoinverse(A), this.makeOneColMatrix(b));
+        return this.produce(this.pseudoinverse(A), this.matrixFromArrayCol(b));
     }
 };
 
