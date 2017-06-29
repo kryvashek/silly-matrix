@@ -122,9 +122,19 @@ module.exports = {
         return matrix.map((row, i) => row.map((item, j) => this.algebraicAddition(matrix, j, i))); // j and i swapped because result should be transposed
     },
 
+    // returns array with elements of specified matrix row
+    fromMatrixRow: function(matrix, i) {
+        return matrix[ i ];
+    },
+
+    // returns array with elements of specified matrix column
+    fromMatrixColumn: function(matrix, j) {
+        return matrix.reduce((column, item) => column.concat( [ item[j] ] ), []);
+    },
+
     // returns a transposed matrix based on the given one
     transpose: function(matrix) {
-        return matrix.map((row, i) => row.map((item, j) => matrix[j][i])); // todo correct transposing !!!!
+        return matrix[0].map((item, j) => this.fromMatrixColumn(matrix, j));
     },
 
     // returns matrix with one row made from usual array
