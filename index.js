@@ -162,6 +162,22 @@ module.exports = {
         return matrixOne.map((row, i) => matrixTwo[0].map((item, j) => this.arrayProduce(this.fromMatrixRow(matrixOne, i), this.fromMatrixColumn(matrixTwo, j))));
     },
 
+    // concates matrix one by adding rows from matrix two to the bottom of matrix one
+    concatDown: function(matrixOne, matrixTwo) {
+        if( matrixOne[0].length !== matrixTwo[0].length )
+            return false;
+
+        return matrixOne.concat(matrixTwo);
+    },
+
+    // concates matrix one by adding columns from matrix two to the right of matrix one
+    concatRight: function(matrixOne, matrixTwo) {
+        if( matrixOne.length !== matrixTwo.length )
+            return false;
+
+        return matrixOne.map((row, i) => row.concat(this.fromMatrixRow(matrixTwo,i)));
+    },
+
     // returns pseudoinverse matrix for the given one
     pseudoinverse: function(A) {
         var At = this.transpose(A);

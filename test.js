@@ -86,6 +86,16 @@ matrixTests = {
             console.log( 'AB is\n', api.produce( A, B ) );
             console.log( 'A*ar is\n', api.produce( A, api.matrixFromArrayColumn(ar) ) );
             console.log( 'ar*B is\n', api.produce( api.matrixFromArrayRow(ar), B ) );
+        },
+
+        checkConcat: function(api) {
+            var A = [[1,2],[1,3]],
+                B = [[1,3],[4,2]];
+            
+            console.log( 'A is\n', A );
+            console.log( 'B is\n', B );
+            console.log( 'A concat down B is\n', api.concatDown(A,B) );
+            console.log( 'A concat right B is\n', api.concatRight(A,B) );
         }
     },
 
