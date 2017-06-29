@@ -73,6 +73,19 @@ matrixTests = {
 
             console.log( 'A is\n', A );
             console.log( 'determinant A is\n', api.determinant( A ) );
+        },
+
+        checkProduce: function(api) {
+            var A = [[1,2,4],[1,3,9]],
+                B = [[1,2],[1,3],[4,2]],
+                ar = [1,2,3];
+            
+            console.log( 'A is\n', A );
+            console.log( 'B is\n', B );
+            console.log( 'ar is\n', ar );
+            console.log( 'AB is\n', api.produce( A, B ) );
+            console.log( 'A*ar is\n', api.produce( A, api.matrixFromArrayColumn(ar) ) );
+            console.log( 'ar*B is\n', api.produce( api.matrixFromArrayRow(ar), B ) );
         }
     },
 

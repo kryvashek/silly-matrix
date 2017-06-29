@@ -143,7 +143,7 @@ module.exports = {
     },
 
     // returns matrix with one column made from usual array
-    matrixFromArrayCol: function(array) {
+    matrixFromArrayColumn: function(array) {
         return this.transpose(this.matrixFromArrayRow(array));
     },
 
@@ -159,12 +159,7 @@ module.exports = {
 
     // returns a production of the given matrices or false if it can not be calculated
     produce: function(matrixOne, matrixTwo) {
-        var transposedTwo = this.transpose(matrixTwo);
-
-        if(matrixOne.length !== transposedTwo.length)
-            return false;
-
-        return matrixOne.map((row, i) => row.map((item, j) => this.arrayProduce(matrixOne[i], transposedTwo[j])));
+        return matrixOne.map((row, i) => matrixTwo[0].map((item, j) => this.arrayProduce(this.fromMatrixRow(matrixOne, i), this.fromMatrixColumn(matrixTwo, j))));
     },
 
     // returns pseudoinverse matrix for the given one
@@ -179,7 +174,7 @@ module.exports = {
 
     // solves linear equation in OLS manner
     solveEquation: function(A, b) {
-        return this.produce(this.pseudoinverse(A), this.matrixFromArrayCol(b));
+        return this.produce(this.pseudoinverse(A), this.matrixFromArrayColumn(b));
     }
 };
 
