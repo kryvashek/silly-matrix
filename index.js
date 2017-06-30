@@ -1,7 +1,7 @@
 // boas-matrix.js
 // ==============
 module.exports = {
-    // looks in a specified array for the entry with the most absolute value
+    // looks in a specified array for the entry with the most absolute value and returns its index
     arrayMaxAbs: function(array, start, stop) {
         if (undefined === start)
             start = 0;
