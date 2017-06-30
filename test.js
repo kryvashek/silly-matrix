@@ -21,7 +21,7 @@ matrixTests = {
 
         checkCopyMatrix: function(api) {
             var A = [[1,2,4],[1,3,9]],
-                B = api.matrixCopy( A );
+                B = api.copy( A );
 
             console.log( 'A and B are both\n', A );
             A[0][2] = 256;
@@ -33,7 +33,7 @@ matrixTests = {
             var A = [[1,2,4],[1,3,9],[4,2,19]];
 
             console.log( 'A is\n', A );
-            console.log( 'A without center row and column is\n', api.matrixExcludeRowCol( A, 1, 1 ) );
+            console.log( 'A without center row and column is\n', api.excludeRowCol( A, 1, 1 ) );
         },
 
         checkAdjugate: function(api) {
@@ -54,13 +54,13 @@ matrixTests = {
             var A = [[1,2,4],[1,3,9]],
                 B = [[1,2],[1,3],[4,2]],
                 ar = [1,2,3,5,7,9],
-                bar = api.matrixFromArrayColumn( ar );
+                bar = api.fromArrayColumn( ar );
 
             console.log( 'A is\n', A );
             console.log( 'transposed A is\n', api.transpose( A ) );
             console.log( 'B is\n', B );
             console.log( 'transposed B is\n', api.transpose( B ) );
-            ar = api.matrixFromArrayRow( ar );
+            ar = api.fromArrayRow( ar );
             console.log( 'ar is\n', ar );
             console.log( 'transposed ar is\n', api.transpose( ar ) );
             console.log( 'bar is\n', bar );
@@ -72,7 +72,7 @@ matrixTests = {
                 B = [[1,2],[1,3],[4,2]];
 
             console.log( 'A is\n', A );
-            console.log( 'A[:][1] is\n', api.fromMatrixColumn(A,1) );
+            console.log( 'A[:][1] is\n', api.column(A,1) );
         },
 
         checkDeterminant: function(api) {
@@ -91,8 +91,8 @@ matrixTests = {
             console.log( 'B is\n', B );
             console.log( 'ar is\n', ar );
             console.log( 'AB is\n', api.produce( A, B ) );
-            console.log( 'A*ar is\n', api.produce( A, api.matrixFromArrayColumn(ar) ) );
-            console.log( 'ar*B is\n', api.produce( api.matrixFromArrayRow(ar), B ) );
+            console.log( 'A*ar is\n', api.produce( A, api.fromArrayColumn(ar) ) );
+            console.log( 'ar*B is\n', api.produce( api.fromArrayRow(ar), B ) );
         },
 
         checkConcat: function(api) {
@@ -117,8 +117,8 @@ matrixTests = {
             console.log( 'pseudo inverse B on columns is \n', api.pseudoInverseOnColumns( B ) );
             console.log( 'pseudo inverse B on Grevil is \n', api.pseudoInverseGrevil( B ) );
             console.log( 'ar is\n', ar );
-            console.log( 'pseudoinverse row ar is \n', api.pseudoInverseGrevil( api.matrixFromArrayRow(ar) ) );
-            console.log( 'pseudoinverse column ar is \n', api.pseudoInverseGrevil( api.matrixFromArrayColumn(ar) ) );
+            console.log( 'pseudoinverse row ar is \n', api.pseudoInverseGrevil( api.fromArrayRow(ar) ) );
+            console.log( 'pseudoinverse column ar is \n', api.pseudoInverseGrevil( api.fromArrayColumn(ar) ) );
         }
     },
 
