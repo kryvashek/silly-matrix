@@ -48,6 +48,21 @@ module.exports = {
         return arrayOne.reduce((sum, current, i) => sum + current * arrayTwo[i], 0);
     },
 
+    // returns zeroed array of the specified length
+    arrayZeroedMake: function(length) {
+        return Array(length).fill(0);
+    },
+
+    // returns true if array is fully zeroed and false otherwise
+    arrayZeroedCheck: function(array) {
+        return !array.some((item) => item !== 0);
+    },
+
+    // produces all the array item and the given value, returns resulted array
+    arrayCoef: function(array,value) {
+        return array.map((item)=>item*value);
+    },
+
     // makes a copy pf given matrix and returns it
     matrixCopy: function(matrix) {
         return matrix.map( this.arrayCopy );
@@ -68,10 +83,30 @@ module.exports = {
         return this.matrixExcludeCol(this.matrixExcludeRow(matrix, i), j);
     },
 
+    // return height of the given matrix (rows count)
+    matrixHeight: function(matrix) {
+        return matrix.length;
+    },
+
+    // returns width of the given matrix (columns count)
+    matrixWidth: function(matrix) {
+        return this.fromMatrixRow(matrix,0).length;
+    },
+
+    // returns true if all matrix rows are zeroed
+    matrixZeroedCheck: function(matrix) {
+        return !matrix.some((row) => !this.arrayZeroedCheck(row));
+    },
+
+    // returns matrix produced by the given scalar value
+    matrixCoef: function(matrix,value) {
+        return matrix.map((row) => this.arrayCoef(row, value));
+    },
+
     // calculation of the determinant for the given square matrix
     // Bareiss algorithm, complexity is ~O(n^3)
     determinant: function(matrix) {
-        var N = matrix[0].length,
+        var N = this.matrixWidth(matrix),
             B = this.matrixCopy(matrix),
             denom = 1,
             exchanges = 0,
@@ -109,7 +144,10 @@ module.exports = {
 
     // calculates and returns extra i,j-minor for given matrix
     minor: function(matrix, i, j) {
-        return this.determinant(this.matrixExcludeRowCol(matrix, i, j));
+        if( 1 == this.matrixHeight( matrix ) && 1 == this.matrixWidth( matrix ) )
+            return 1;
+        else
+            return this.determinant(this.matrixExcludeRowCol(matrix, i, j));
     },
 
     // calculates and returns algebraic addition for i,j-element of given matrix
@@ -119,12 +157,16 @@ module.exports = {
 
     // returns an adjugate matrix for the given one (should be square)
     adjugate: function(matrix) {
-        return matrix.map((row, i) => row.map((item, j) => this.algebraicAddition(matrix, j, i))); // j and i swapped because result should be transposed
+        return matrix.map(
+            (row, i) => row.map(
+                (item, j) => this.algebraicAddition(matrix, j, i)
+            )
+        ); // j and i swapped because result should be transposed
     },
 
     // returns array with elements of specified matrix row
     fromMatrixRow: function(matrix, i) {
-        return matrix[ i ];
+        return this.arrayCopy( matrix[ i ] );
     },
 
     // returns array with elements of specified matrix column
@@ -134,7 +176,7 @@ module.exports = {
 
     // returns a transposed matrix based on the given one
     transpose: function(matrix) {
-        return matrix[0].map((item, j) => this.fromMatrixColumn(matrix, j));
+        return this.fromMatrixRow(matrix, 0).map((item, j) => this.fromMatrixColumn(matrix, j));
     },
 
     // returns matrix with one row made from usual array
@@ -157,14 +199,36 @@ module.exports = {
         return this.adjugate(matrix).map(row => row.map(item => item / det));
     },
 
+    // returns sum of two matrices of the same sizes
+    sum: function(mtx1, mtx2) {
+        if( this.matrixWidth(mtx1) !== this.matrixWidth(mtx2) ||
+            this.matrixHeight(mtx1) !== this.matrixHeight(mtx2) )
+            return false;
+
+        return mtx1.map((row,i) => row.map((item,j) => item + mtx2[i][j] ) );
+    },
+
+    // returns difference between two matrices of the same sizes
+    differ: function(mtx1, mtx2) {
+        if( this.matrixWidth(mtx1) !== this.matrixWidth(mtx2) ||
+            this.matrixHeight(mtx1) !== this.matrixHeight(mtx2) )
+            return false;
+
+        return mtx1.map((row,i) => row.map((item,j) => item - mtx2[i][j] ) );
+    },
+
     // returns a production of the given matrices or false if it can not be calculated
     produce: function(matrixOne, matrixTwo) {
-        return matrixOne.map((row, i) => matrixTwo[0].map((item, j) => this.arrayProduce(this.fromMatrixRow(matrixOne, i), this.fromMatrixColumn(matrixTwo, j))));
+        return matrixOne.map(
+            (row, i) => this.fromMatrixRow(matrixTwo, 0).map(
+                (item, j) => this.arrayProduce(this.fromMatrixRow(matrixOne, i), this.fromMatrixColumn(matrixTwo, j))
+            )
+        );
     },
 
     // concates matrix one by adding rows from matrix two to the bottom of matrix one
     concatDown: function(matrixOne, matrixTwo) {
-        if( matrixOne[0].length !== matrixTwo[0].length )
+        if( this.matrixWidth(matrixOne) !== this.matrixWidth(matrixTwo) )
             return false;
 
         return matrixOne.concat(matrixTwo);
@@ -172,25 +236,72 @@ module.exports = {
 
     // concates matrix one by adding columns from matrix two to the right of matrix one
     concatRight: function(matrixOne, matrixTwo) {
-        if( matrixOne.length !== matrixTwo.length )
+        if( this.matrixHeight(matrixOne) !== this.matrixHeight(matrixTwo) )
             return false;
 
         return matrixOne.map((row, i) => row.concat(this.fromMatrixRow(matrixTwo,i)));
     },
 
-    // returns pseudoinverse matrix for the given one
-    pseudoinverse: function(A) {
-        var At = this.transpose(A);
+    // returns pseudoinverse matrix for the given one in case of rows being linearly independent
+    pseudoInverseOnRows: function(A) {
+        var At = this.transpose(A),
+            B = this.produce(A, At);
 
-        if (A.length < At.length)
-            return this.produce(At, this.inverse(this.produce(A, At)));
+        if( 0 === this.determinant(B) )
+            return false;
+
+        return this.produce(At, this.inverse(B));
+    },
+
+    // returns pseudoinverse matrix for the given one in case of columns being linearly independent
+    pseudoInverseOnColumns: function(A) {
+        var At = this.transpose(A),
+            B = this.produce(At, A);
+
+        if( 0 === this.determinant(B) )
+            return false;
+
+        return this.produce(this.inverse(B), At);
+    },
+
+    // returns pseudoinverse matrix for the given one
+    // Grevil`s method, complexity is ~O(n^3)
+    pseudoInverseGrevil: function(matrix) {
+        var k, Ak, AkInv,
+            column, lastRow,
+            prod, prodTrans,
+            diff, coef;
+
+        column = this.matrixFromArrayColumn( this.fromMatrixColumn( matrix, 0 ) );
+        Ak = column;
+
+        if( this.matrixZeroedCheck( column ) )
+            AkInv = this.transpose( column );
         else
-            return this.produce(this.inverse(this.produce(At, A)), At);
+            AkInv = this.pseudoInverseOnColumns(column);
+
+        for( k = 1; k < this.matrixWidth( matrix ); k++) {
+            column = this.matrixFromArrayColumn( this.fromMatrixColumn( matrix, k ) );
+            prod = this.produce(AkInv,column);
+            diff = this.differ(column,this.produce(Ak,prod));
+
+            if( this.matrixZeroedCheck( diff ) ) {
+                prodTrans = this.transpose(prod);
+                coef = 1 / ( 1 + this.produce( prodTrans, prod )[ 0 ][ 0 ] );
+                lastRow = this.matrixCoef( this.produce( prodTrans, AkInv ), coef );
+            } else
+                lastRow = this.pseudoInverseOnColumns( diff, this.transpose( diff) );
+
+            AkInv = this.concatDown( this.differ( AkInv, this.produce(prod,lastRow) ), lastRow );
+            Ak = this.concatRight( Ak, column );
+        }
+
+        return AkInv;
     },
 
     // solves linear equation in OLS manner
     solveEquation: function(A, b) {
-        return this.produce(this.pseudoinverse(A), this.matrixFromArrayColumn(b));
+        return this.produce(this.pseudoInverseGrevil(A), this.matrixFromArrayColumn(b));
     }
 };
 
